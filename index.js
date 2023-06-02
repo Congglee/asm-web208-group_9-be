@@ -16,6 +16,4 @@ app.use(cors());
 
 mongoose.connect("mongodb://localhost:27017/asm-web501");
 
-console.log("Hello logic");
-
 export const viteNodeApp = app;
