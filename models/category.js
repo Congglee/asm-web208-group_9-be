@@ -1,4 +1,4 @@
-const mongoose = require("mongoose"); // Erase if already required
+import mongoose from "mongoose";
 
 var categorySchema = new mongoose.Schema(
   {

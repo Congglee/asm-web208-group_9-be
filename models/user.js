@@ -1,4 +1,4 @@
-const mongoose = require("mongoose"); // Erase if already required
+import mongoose from "mongoose";
 
 // Declare the Schema of the Mongo model
 var userSchema = new mongoose.Schema(
