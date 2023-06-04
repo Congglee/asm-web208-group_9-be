@@ -1,22 +1,30 @@
 import User from "../models/user";
-import jwt from "jsonwebtoken";
 import bcrypt from "bcrypt";
-import { valid } from "joi";
 import { generateAccessToken, generateRefreshToken } from "../middlewares/jwt";
+import { loginSchema, registerSchema, updateUserSchema } from "../schemas/user";
 
 const register = async (req, res) => {
   try {
+    const { error } = registerSchema.validate(req.body, {
+      abortEarly: false,
+    });
+    if (error) {
+      const errors = error.details.map((errItem) => errItem.message);
+      return res.status(400).json({
+        success: false,
+        message: errors,
+      });
+    }
+
     const { name, email, password } = req.body;
-    if (!name || !email || !password)
-      return res
-        .status(400)
-        .json({ message: "Vui lòng nhập đầy đủ thông tin", success: false });
     const checkEmail = await User.findOne({ email });
     if (checkEmail) {
-      return res
-        .status(400)
-        .json({ message: "Email đã được sử dụng!", success: false });
+      return res.status(400).json({
+        success: false,
+        message: "Email đã được sử dụng! Vui lòng nhập email khác",
+      });
     }
+
     // Mã hóa password
     const saltRounds = 10;
     const hashPassword = await bcrypt.hash(password, saltRounds);
@@ -26,38 +34,47 @@ const register = async (req, res) => {
       password: hashPassword,
     });
     const user = await newUser.save();
-    return res
-      .status(200)
-      .json({ user, message: "Tạo tài khoản thành công!", success: true });
+    return res.status(200).json({
+      success: true,
+      user,
+      message: "Đăng ký tài khoản thành công!",
+    });
   } catch (error) {
-    return res.status(500).json({
-      message: "Tạo tài khoản thất bại! " + error.message,
+    return res.status(400).json({
       success: false,
+      message: `Đăng ký tài tài khoản thất bại! ${error.message}`,
     });
   }
 };
 
 const login = async (req, res) => {
   try {
-    const { email, password } = req.body;
-    if (!email || !password) {
-      return res
-        .status(400)
-        .json({ success: false, message: "Khong duoc bo trong !" });
+    const { error } = loginSchema.validate(req.body, {
+      abortEarly: false,
+    });
+    if (error) {
+      const errors = error.details.map((errItem) => errItem.message);
+      return res.status(400).json({
+        success: false,
+        message: errors,
+      });
     }
 
+    const { email, password } = req.body;
     const user = await User.findOne({ email: email });
     if (!user) {
       return res
         .status(403)
-        .json({ success: false, message: "Email không đúng!" });
+        .json({ success: false, message: "Email tài khoản không đúng!" });
     }
-    const { password: hashPassword } = user;
 
+    const { password: hashPassword } = user;
     const validPassword = await bcrypt.compare(password, hashPassword);
 
     if (!validPassword)
-      return res.status(403).json({ success: false, message: "Sai mật khẩu!" });
+      return res
+        .status(403)
+        .json({ success: false, message: "Mật khẩu nhập không đúng" });
 
     if (user && validPassword) {
       const accessToken = generateAccessToken(user);
@@ -72,15 +89,16 @@ const login = async (req, res) => {
 
       user.password = undefined;
       return res.status(200).json({
-        message: "Đăng nhập thành công!",
+        success: true,
+        message: "Đăng nhập tài khoản thành công!",
         user,
         accessToken,
       });
     }
   } catch (error) {
-    return res.status(500).status({
-      message: "Dang nhap that bai!" + error.message,
+    return res.status(400).status({
       success: false,
+      message: `Đăng nhập tài khoản thất bại! ${error.message}`,
     });
   }
 };
@@ -91,29 +109,30 @@ const logOut = async (req, res) => {
 };
 
 const getUser = async (req, res) => {
-  const { id } = req.params;
-  if (!id) {
-    return res.status(404).json({ message: "Id không tồn tại" });
+  try {
+    const { id } = req.params;
+    const user = await User.findById(id).select("-password -role");
+
+    return res.status(200).json({
+      success: user ? true : false,
+      userData: user ? user : "Không tim thấy tài khoản",
+    });
+  } catch (error) {
+    return res.status(400).status({
+      success: false,
+      message: error.message,
+    });
   }
-  const user = await User.findById(id);
-  if (!user) {
-    return res
-      .status(401)
-      .json({ message: "Sản phẩm không có!", success: false });
-  }
-  return res.status(200).json({ message: "San pham ne!", user });
 };
 
 const getUsers = async (req, res) => {
   try {
-    const user = await User.find();
-    if (!user) {
-      return res.status(401).json({
-        success: true,
-        message: "Danh sách trống!",
-      });
-    }
-    res.status(200).json(user);
+    const user = await User.find().select("-password -role");
+
+    return res.status(200).json({
+      success: user ? true : false,
+      users: user,
+    });
   } catch (error) {
     res
       .status(500)
@@ -124,45 +143,44 @@ const getUsers = async (req, res) => {
 const deleteUser = async (req, res) => {
   try {
     const { id } = req.params;
-    if (!id) return res.status(401).json({ message: "id không tồn tại!" });
-
     const deleteUser = await User.findByIdAndDelete(id);
-    if (!deleteUser)
-      return res.status(401).json({ message: "User không tồn tại!" });
 
-    if (deleteUser)
-      return res.status(200).json({
-        message: "Xóa tài khoản thành công",
-        success: true,
-        deletedUser: deleteUser,
-      });
+    return res.status(200).json({
+      success: deleteUser ? true : false,
+      deletedUser: deleteUser
+        ? `Xóa tài khoản với email ${deleteUser.email} thành công`
+        : "Xóa tài khoản thất bại",
+    });
   } catch (error) {
     return res.status(500).json({
-      message: "Xóa tài khoản thất bại!" + error.message,
       success: false,
+      message: error.message,
     });
   }
 };
 
 const updateUser = async (req, res) => {
   try {
-    const { name, email } = req.body;
-
-    if (!name || !email)
+    const { error } = updateUserSchema.validate(req.body, {
+      abortEarly: false,
+    });
+    if (error) {
+      const errors = error.details.map((errItem) => errItem.message);
       return res.status(400).json({
-        message: "Vui lòng không được để trống các trường!",
         success: false,
+        message: errors,
       });
+    }
 
+    const { email } = req.body;
     const checkEmail = await User.findOne({ email });
     if (checkEmail)
       return res.status(401).json({
-        message: "Vui lòng nhập lại email khác!",
         success: false,
-        checkEmail,
+        message: "Email đã tồn tại, vui lòng nhập lại email khác!",
       });
 
-    const newUser = await User.findByIdAndUpdate(
+    const updateUser = await User.findByIdAndUpdate(
       {
         _id: req.params.id,
       },
@@ -170,17 +188,18 @@ const updateUser = async (req, res) => {
       { new: true }
     ).select("-password -role");
 
-    if (newUser)
-      return res.status(200).json({
-        message: "Cập nhật tài khoản thành công!",
-        newUser,
-        success: true,
-      });
+    return res.status(200).json({
+      success: updateUser ? true : false,
+      updatedUser: updateUser
+        ? updateUser
+        : "Cập nhật thông tin tài khoản thất bại",
+    });
   } catch (error) {
     return res.status(500).json({
-      message: "Update User thất bại!" + error.message,
       success: false,
+      message: error.message,
     });
   }
 };
+
 export { register, login, logOut, getUser, getUsers, deleteUser, updateUser };

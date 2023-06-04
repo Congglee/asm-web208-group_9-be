@@ -6,15 +6,16 @@ import {
   getCategory,
   updateCategory,
 } from "../controllers/CategoryController";
+import { isAdmin, verifyAccessToken } from "../middlewares/verifyToken";
 
 const router = express.Router();
 
 router.get("/categories", getCategories);
 router.get("/categories/:id", getCategory);
 
-router.post("/categories", createCategory);
-router.put("/categories/:id", updateCategory);
+router.post("/categories", [verifyAccessToken, isAdmin], createCategory);
+router.put("/categories/:id", [verifyAccessToken, isAdmin], updateCategory);
 
-router.delete("/categories/:id", deleteCategory);
+router.delete("/categories/:id", [verifyAccessToken, isAdmin], deleteCategory);
 
 export default router;

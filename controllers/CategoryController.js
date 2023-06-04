@@ -1,10 +1,24 @@
-import joi from "joi";
 import Category from "../models/category";
 import Product from "../models/product";
 import slugify from "slugify";
+import {
+  createCategorySchema,
+  updateCategorySchema,
+} from "../schemas/category";
 
 const createCategory = async (req, res) => {
   try {
+    const { error } = createCategorySchema.validate(req.body, {
+      abortEarly: false,
+    });
+    if (error) {
+      const errors = error.details.map((errItem) => errItem.message);
+      return res.status(400).json({
+        success: false,
+        message: errors,
+      });
+    }
+
     const newCategorySlug = slugify(req.body.name, { lower: true });
     const newCategory = await Category.create({
       ...req.body,
@@ -45,7 +59,9 @@ const getCategory = async (req, res) => {
   try {
     const { id } = req.params;
     const category = await Category.findById(id).populate("products");
-    const products = await Product.find({ categoryId: req.params.id });
+    const products = await Product.find({ categoryId: req.params.id }).select(
+      "-createdAt -__v -updatedAt"
+    );
 
     return res.json({
       success: category ? true : false,
@@ -103,7 +119,25 @@ const deleteCategory = async (req, res) => {
 
 const updateCategory = async (req, res) => {
   try {
+    const { error } = updateCategorySchema.validate(req.body, {
+      abortEarly: false,
+    });
+    if (error) {
+      const errors = error.details.map((errItem) => errItem.message);
+      return res.status(400).json({
+        success: false,
+        message: errors,
+      });
+    }
+
     const { id } = req.params;
+    const updateCategory = await Category.findById(id);
+    if (!updateCategory)
+      return res.status(400).json({
+        success: false,
+        message: "Không tìm thấy danh mục",
+      });
+
     const updateCategorySlug = slugify(req.body.name, { lower: true });
     const updatedCategory = await Category.findByIdAndUpdate(
       id,
