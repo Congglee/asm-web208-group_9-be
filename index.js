@@ -5,6 +5,10 @@ import dotenv from "dotenv";
 import bodyParser from "body-parser";
 import cookieParser from "cookie-parser";
 
+// Product
+import productRoute from "./routers/product";
+dotenv.config();
+
 import userRoute from "./routers/user";
 import categoryRoute from "./routers/category";
 
@@ -19,6 +23,7 @@ app.use(cors());
 app.use("/api/user", userRoute);
 app.use("/api", categoryRoute);
 
+app.use("/api/product", productRoute);
 mongoose.connect(
   "mongodb+srv://congltph27602:congltph27602@asm-web208.6mtrvgz.mongodb.net/asm-web208-g7"
 );

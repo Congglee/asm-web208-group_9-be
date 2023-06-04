@@ -27,7 +27,9 @@ const createCategory = async (req, res) => {
 
 const getCategories = async (req, res) => {
   try {
-    const categories = await Category.find().select("name _id image slug");
+    const categories = await Category.find().select(
+      "name _id image slug products"
+    );
 
     return res.json({
       success: categories ? true : false,
