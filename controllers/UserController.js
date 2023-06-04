@@ -20,7 +20,7 @@ const register = async (req, res) => {
     // Mã hóa password
     const saltRounds = 10;
     const hashPassword = await bcrypt.hash(password, saltRounds);
-    const newUser = await new User({
+    const newUser = new User({
       name,
       email,
       password: hashPassword,
@@ -84,46 +84,6 @@ const login = async (req, res) => {
     });
   }
 };
-
-// const login = async (req, res) => {
-//   try {
-//     const { email, password } = req.body;
-//     if (!email || !password)
-//       return res.status(400).json({
-//         success: false,
-//         mes: "Missing inputs",
-//       });
-
-//     const response = await User.findOne({ email });
-//     if (response && (await response.isCorrectPassword(password))) {
-//       const { password, role, refreshToken, ...userData } = response.toObject();
-
-//       const accessToken = generateAccessToken(response._id, role);
-//       // const newRefreshToken = generateRefreshToken(response._id);
-
-//       // await User.findByIdAndUpdate(
-//       //   response._id,
-//       //   {
-//       //     refreshToken: newRefreshToken,
-//       //   },
-//       //   { new: true }
-//       // );
-
-//       return res.status(200).json({
-//         success: true,
-//         accessToken,
-//         userData,
-//       });
-//     } else {
-//       throw new Error("Invalid credentials");
-//     }
-//   } catch (error) {
-//     return res.status(400).json({
-//       success: false,
-//       mes: error?.message,
-//     });
-//   }
-// };
 
 const logOut = async (req, res) => {
   res.clearCookie("refreshToken");
