@@ -7,7 +7,7 @@ const verifyAccessToken = async (req, res, next) => {
       if (err)
         return res.status(401).json({
           success: false,
-          message: "Invalid access token",
+          message: "Access token không hợp lệ",
         });
 
       req.user = decode;
@@ -16,7 +16,7 @@ const verifyAccessToken = async (req, res, next) => {
   } else {
     return res.status(401).json({
       success: false,
-      message: "Require authentication!",
+      message: "Vui lòng đăng nhập!",
     });
   }
 };
@@ -26,7 +26,7 @@ const isAdmin = async (req, res, next) => {
   if (role === false)
     return res.status(401).json({
       success: false,
-      message: "Require Admin Role",
+      message: "Yêu cầu quyền admin",
     });
 
   next();

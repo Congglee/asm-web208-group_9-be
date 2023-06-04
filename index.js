@@ -16,7 +16,7 @@ app.use(bodyParser.urlencoded({ limit: "5mb", extended: true }));
 app.use(cookieParser());
 app.use(cors());
 
-app.use("/api/user", userRoute);
+app.use("/api", userRoute);
 app.use("/api", categoryRoute);
 
 mongoose.connect(

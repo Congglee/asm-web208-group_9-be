@@ -1,10 +1,20 @@
-import joi from "joi";
+import Joi from "joi";
 
-export const categorySchema = joi.object({
-  name: joi.string().trim().required().messages({
-    "string.empty": "Name không được để trống",
+export const createCategorySchema = Joi.object({
+  name: Joi.string().trim().required().messages({
+    "string.empty": "Tên danh mục không được để trống",
+    "any.required": "Trường tên danh mục là bắt buộc",
   }),
-  image: joi.string().trim().required().messages({
-    "string.empty": "Image không được để trống",
+  image: Joi.string().trim().messages({
+    "string.empty": "Ảnh danh mục không được để trống",
+  }),
+});
+
+export const updateCategorySchema = Joi.object({
+  name: Joi.string().trim().messages({
+    "string.empty": "Tên danh mục không được để trống",
+  }),
+  image: Joi.string().trim().messages({
+    "string.empty": "Ảnh danh mục không được để trống",
   }),
 });
