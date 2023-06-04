@@ -15,6 +15,7 @@ app.use(cookieParser());
 app.use(cors());
 
 app.use("/api/user", userRoute);
+
 mongoose.connect(
   "mongodb+srv://congltph27602:congltph27602@asm-web208.6mtrvgz.mongodb.net/asm-web208-g7"
 );

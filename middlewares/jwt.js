@@ -4,19 +4,19 @@ const generateAccessToken = (user) => {
   return jwt.sign(
     {
       id: user.id,
-      admin: user.admin,
+      admin: user.role,
     },
-    process.env.ACCESS_TOKEN_SECRET,
-    { expiresIn: "60s" }
+    process.env.JWT_SECRET,
+    { expiresIn: "2d" }
   );
 };
 const generateRefreshToken = (user) => {
   return jwt.sign(
     {
       id: user.id,
-      admin: user.admin,
+      admin: user.role,
     },
-    process.env.REFRESH_TOKEN_SECRET,
+    process.env.JWT_SECRET,
     { expiresIn: "365d" }
   );
 };

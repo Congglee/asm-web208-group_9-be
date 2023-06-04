@@ -1,4 +1,4 @@
-import User from "../models/User";
+import User from "../models/user";
 import jwt from "jsonwebtoken";
 import bcrypt from "bcrypt";
 import { valid } from "joi";
@@ -52,7 +52,7 @@ const login = async (req, res) => {
         .status(403)
         .json({ success: false, message: "Email không đúng!" });
     }
-    const { password: hashPassword } = await user;
+    const { password: hashPassword } = user;
 
     const validPassword = await bcrypt.compare(password, hashPassword);
 
@@ -69,6 +69,7 @@ const login = async (req, res) => {
         path: "/",
         sameSite: "strict",
       });
+
       user.password = undefined;
       return res.status(200).json({
         message: "Đăng nhập thành công!",
@@ -84,12 +85,52 @@ const login = async (req, res) => {
   }
 };
 
+// const login = async (req, res) => {
+//   try {
+//     const { email, password } = req.body;
+//     if (!email || !password)
+//       return res.status(400).json({
+//         success: false,
+//         mes: "Missing inputs",
+//       });
+
+//     const response = await User.findOne({ email });
+//     if (response && (await response.isCorrectPassword(password))) {
+//       const { password, role, refreshToken, ...userData } = response.toObject();
+
+//       const accessToken = generateAccessToken(response._id, role);
+//       // const newRefreshToken = generateRefreshToken(response._id);
+
+//       // await User.findByIdAndUpdate(
+//       //   response._id,
+//       //   {
+//       //     refreshToken: newRefreshToken,
+//       //   },
+//       //   { new: true }
+//       // );
+
+//       return res.status(200).json({
+//         success: true,
+//         accessToken,
+//         userData,
+//       });
+//     } else {
+//       throw new Error("Invalid credentials");
+//     }
+//   } catch (error) {
+//     return res.status(400).json({
+//       success: false,
+//       mes: error?.message,
+//     });
+//   }
+// };
+
 const logOut = async (req, res) => {
   res.clearCookie("refreshToken");
   res.status(200).json({ message: "Đăng xuất thành công!" });
 };
 
-const getUserId = async (req, res) => {
+const getUser = async (req, res) => {
   const { id } = req.params;
   if (!id) {
     return res.status(404).json({ message: "Id không tồn tại" });
@@ -103,7 +144,7 @@ const getUserId = async (req, res) => {
   return res.status(200).json({ message: "San pham ne!", user });
 };
 
-const getAllUsers = async (req, res) => {
+const getUsers = async (req, res) => {
   try {
     const user = await User.find();
     if (!user) {
@@ -124,23 +165,25 @@ const deleteUser = async (req, res) => {
   try {
     const { id } = req.params;
     if (!id) return res.status(401).json({ message: "id không tồn tại!" });
-    const userId = await User.findById(id);
-    if (!userId)
+
+    const deleteUser = await User.findByIdAndDelete(id);
+    if (!deleteUser)
       return res.status(401).json({ message: "User không tồn tại!" });
 
-    const user = await User.deleteOne({ id });
-
-    if (user)
-      return res
-        .status(200)
-        .json({ message: "Xóa sản phẩm thành công", success: true, user });
+    if (deleteUser)
+      return res.status(200).json({
+        message: "Xóa tài khoản thành công",
+        success: true,
+        deletedUser: deleteUser,
+      });
   } catch (error) {
     return res.status(500).json({
-      message: "Xóa người dùng thất bại!" + error.message,
+      message: "Xóa tài khoản thất bại!" + error.message,
       success: false,
     });
   }
 };
+
 const updateUser = async (req, res) => {
   try {
     const { name, email } = req.body;
@@ -150,6 +193,7 @@ const updateUser = async (req, res) => {
         message: "Vui lòng không được để trống các trường!",
         success: false,
       });
+
     const checkEmail = await User.findOne({ email });
     if (checkEmail)
       return res.status(401).json({
@@ -157,16 +201,20 @@ const updateUser = async (req, res) => {
         success: false,
         checkEmail,
       });
-    const newUser = await User.updateOne(
+
+    const newUser = await User.findByIdAndUpdate(
       {
         _id: req.params.id,
       },
-      { name, email }
-    );
+      req.body,
+      { new: true }
+    ).select("-password -role");
+
     if (newUser)
       return res.status(200).json({
         message: "Cập nhật tài khoản thành công!",
-        success: false,
+        newUser,
+        success: true,
       });
   } catch (error) {
     return res.status(500).json({
@@ -175,12 +223,4 @@ const updateUser = async (req, res) => {
     });
   }
 };
-export {
-  register,
-  login,
-  logOut,
-  getUserId,
-  getAllUsers,
-  deleteUser,
-  updateUser,
-};
+export { register, login, logOut, getUser, getUsers, deleteUser, updateUser };
