@@ -7,8 +7,8 @@ import cookieParser from "cookie-parser";
 
 import userRoute from "./routers/user";
 import categoryRoute from "./routers/category";
-dotenv.config();
 
+dotenv.config();
 const app = express();
 
 app.use(bodyParser.json({ limit: "5mb" }));
