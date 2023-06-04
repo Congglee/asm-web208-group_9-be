@@ -13,7 +13,7 @@ var productSchema = new mongoose.Schema(
     },
     thumb: {
       type: String,
-      require: true,
+      required: true,
     },
     images: {
       type: Array,
@@ -21,7 +21,7 @@ var productSchema = new mongoose.Schema(
     },
     price: {
       type: Number,
-      require: true,
+      required: true,
     },
     description: {
       type: String,
