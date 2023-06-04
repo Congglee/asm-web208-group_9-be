@@ -1,19 +1,21 @@
 import express from "express";
-
 import {
-  create,
-  update,
   getProduct,
   getProducts,
   deleteProduct,
-} from "../controllers/product";
+  createProduct,
+  updateProduct,
+} from "../controllers/ProductController";
+import { isAdmin, verifyAccessToken } from "../middlewares/verifyToken";
 
 const router = express.Router();
 
-router.post("/", create);
-router.get("/", getProducts);
-router.delete("/:id", deleteProduct);
-router.get("/:id", getProduct);
-router.put("/:id", update);
+router.post("/products", [verifyAccessToken, isAdmin], createProduct);
+
+router.get("/products", getProducts);
+router.get("/products/:id", getProduct);
+
+router.put("/products/:id", [verifyAccessToken, isAdmin], updateProduct);
+router.delete("/products/:id", [verifyAccessToken, isAdmin], deleteProduct);
 
 export default router;

@@ -13,10 +13,7 @@ var productSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
-    images: {
-      type: Array,
-      default: [],
-    },
+    images: [],
     price: {
       type: Number,
       required: true,
@@ -33,5 +30,6 @@ var productSchema = new mongoose.Schema(
 );
 
 mongoose.plugin(slug);
+
 //Export the model
 export default mongoose.model("Product", productSchema);

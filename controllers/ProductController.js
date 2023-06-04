@@ -1,0 +1,229 @@
+import Product from "../models/product";
+import Category from "../models/category";
+import slugify from "slugify";
+import { createProductSchema, updateProductSchema } from "../schemas/product";
+
+const createProduct = async (req, res) => {
+  try {
+    const { error } = createProductSchema.validate(req.body, {
+      abortEarly: false,
+    });
+    if (error) {
+      const errors = error.details.map((errItem) => errItem.message);
+      return res.status(400).json({
+        success: false,
+        message: errors,
+      });
+    }
+
+    const newProduct = await Product.create(req.body);
+
+    return res.status(200).json({
+      success: newProduct ? true : false,
+      createdProduct: newProduct ? newProduct : "Thêm mới sản phẩm thất bại",
+    });
+  } catch (error) {
+    return res.status(400).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
+const updateProduct = async (req, res) => {
+  try {
+    const { error } = updateProductSchema.validate(req.body, {
+      abortEarly: false,
+    });
+    if (error) {
+      const errors = error.details.map((errItem) => errItem.message);
+      return res.status(400).json({
+        success: false,
+        message: errors,
+      });
+    }
+
+    const { id } = req.params;
+    const { categoryId: newCategoryId } = req.body;
+
+    const product = await Product.findById(id);
+    if (!product) throw new Error("Product not found");
+
+    const oldCategoryId = product.categoryId;
+
+    if (oldCategoryId && oldCategoryId.toString() !== newCategoryId) {
+      const oldCategory = await Category.findById(oldCategoryId);
+      if (oldCategory) {
+        oldCategory.products = oldCategory.products.filter(
+          (productId) => productId.toString() !== id
+        );
+
+        await oldCategory.save();
+      } else {
+        console.log(`Không tìm thấy danh mục cũ: ${oldCategoryId}`);
+      }
+    }
+
+    let newSlug = product.slug;
+    if (req.body.name) {
+      newSlug = slugify(req.body.name, { lower: true });
+    }
+
+    const updatedProduct = await Product.findByIdAndUpdate(
+      id,
+      { ...req.body, slug: newSlug },
+      {
+        new: true,
+      }
+    );
+
+    return res.status(200).json({
+      success: updatedProduct ? true : false,
+      updatedProduct: updatedProduct
+        ? updatedProduct
+        : "Cập nhật sản phẩm thất bại",
+    });
+  } catch (error) {
+    return res.status(400).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
+const deleteProduct = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const deleteProduct = await Product.findById(id);
+
+    if (!deleteProduct) throw new Error("Không tìm thấy sản phẩm");
+
+    await Category.findByIdAndUpdate(deleteProduct.categoryId, {
+      $pull: { products: id },
+    });
+
+    const deletedProduct = await Product.findByIdAndDelete(id);
+
+    return res.status(200).json({
+      success: deletedProduct ? true : false,
+      deletedProduct: deletedProduct ? deletedProduct : "Cannot delete product",
+    });
+  } catch (error) {
+    return res.status(400).json({
+      success: false,
+      mes: error.message,
+    });
+  }
+};
+
+const getProduct = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const product = await Product.findById(id).populate("categoryId", "name");
+
+    if (product) {
+      return res.status(200).json({
+        success: true,
+        productData: product,
+      });
+    } else {
+      return res.status(404).json({
+        success: false,
+        message: "Không tìm thấy sản phẩm!",
+      });
+    }
+  } catch (error) {
+    return res.status(400).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
+const getProducts = async (req, res) => {
+  try {
+    const queries = { ...req.query };
+    const exculdeFields = ["limit", "sort", "page", "fields"];
+    exculdeFields.forEach((item) => delete queries[item]);
+
+    let queryString = JSON.stringify(queries);
+    queryString = queryString.replace(
+      /\b(gte|gt|lt|lte)\b/g,
+      (matchedItem) => `$${matchedItem}`
+    );
+
+    const formatedQueries = JSON.parse(queryString);
+
+    if (queries?.name)
+      formatedQueries.name = { $regex: queries.name, $options: "i" };
+
+    let queryCommand = Product.find(formatedQueries);
+
+    if (req.query.sort) {
+      const sortBy = req.query.sort.split(",").join(" ");
+      queryCommand = queryCommand.sort(sortBy);
+    }
+
+    if (req.query.fields) {
+      const fields = req.query.fields.split(",").join(" ");
+      queryCommand = queryCommand.select(fields);
+    } else {
+      queryCommand = queryCommand.select("-__v");
+    }
+
+    const page = +req.query.page * 1 || 1;
+    const limit = +req.query.limit * 1 || 1000000;
+    const skip = (page - 1) * limit;
+
+    queryCommand = queryCommand.skip(skip).limit(limit);
+
+    queryCommand.exec(async (err, response) => {
+      if (err) throw new Error(err.message);
+      const counts = await Product.find(formatedQueries).countDocuments();
+      return res.status(200).json({
+        success: response ? true : false,
+        counts,
+        products: response ? response : "Cannot get products",
+      });
+    });
+  } catch (error) {
+    return res.status(400).json({
+      success: false,
+      mes: error?.message,
+    });
+  }
+};
+
+const uploadImagesProducts = async (req, res) => {
+  try {
+    const { pid } = req.params;
+    if (!req.files) throw new Error("Missing inputs");
+
+    const response = await Product.findByIdAndUpdate(
+      pid,
+      {
+        $push: { images: { $each: req.files.map((el) => el.path) } },
+      },
+      { new: true }
+    );
+
+    return res.status(200).json({
+      status: response ? true : false,
+      updatedProduct: response ? response : "Cannot upload images product",
+    });
+  } catch (error) {
+    return res.status(400).json({
+      success: false,
+      mes: error?.message,
+    });
+  }
+};
+
+export {
+  createProduct,
+  updateProduct,
+  getProduct,
+  getProducts,
+  deleteProduct,
+  uploadImagesProducts,
+};
