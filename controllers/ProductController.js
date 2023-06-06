@@ -16,6 +16,18 @@ const createProduct = async (req, res) => {
       });
     }
 
+    const productName = req.body.name;
+    const existingProduct = await Product.findOne({
+      name: { $regex: productName, $options: "i" },
+    });
+    if (existingProduct) {
+      return res.status(400).json({
+        success: false,
+        message:
+          "Sản phẩm có cùng tên đã tồn tại, vui lòng nhập lại tên sản phẩm",
+      });
+    }
+
     const newProduct = await Product.create(req.body);
 
     return res.status(200).json({
@@ -60,13 +72,30 @@ const updateProduct = async (req, res) => {
 
         await oldCategory.save();
       } else {
-        console.log(`Không tìm thấy danh mục cũ: ${oldCategoryId}`);
+        return res.status(400).json({
+          success: false,
+          message: `Không tìm thấy danh mục cũ: ${oldCategoryId}`,
+        });
       }
     }
 
+    const productName = req.body.name;
     let newSlug = product.slug;
-    if (req.body.name) {
+    if (productName) {
+      const existingProduct = await Product.findOne({
+        _id: { $ne: id },
+        name: { $regex: productName, $options: "i" },
+      });
+
       newSlug = slugify(req.body.name, { lower: true });
+
+      if (existingProduct) {
+        return res.status(400).json({
+          success: false,
+          messages:
+            "Sản phẩm trùng tên đã tồn tại, vui lòng nhập lại tên sản phẩm",
+        });
+      }
     }
 
     const updatedProduct = await Product.findByIdAndUpdate(
@@ -120,6 +149,33 @@ const getProduct = async (req, res) => {
   try {
     const { id } = req.params;
     const product = await Product.findById(id).populate("categoryId", "name");
+
+    if (product) {
+      return res.status(200).json({
+        success: true,
+        productData: product,
+      });
+    } else {
+      return res.status(404).json({
+        success: false,
+        message: "Không tìm thấy sản phẩm!",
+      });
+    }
+  } catch (error) {
+    return res.status(400).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
+const getProductBySlug = async (req, res) => {
+  try {
+    const productSlug = req.params.slug;
+    const product = await Product.findOne({ slug: productSlug }).populate({
+      path: "categoryId",
+      select: "name slug",
+    });
 
     if (product) {
       return res.status(200).json({
@@ -226,4 +282,5 @@ export {
   getProducts,
   deleteProduct,
   uploadImagesProducts,
+  getProductBySlug,
 };
