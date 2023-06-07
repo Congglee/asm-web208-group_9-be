@@ -18,6 +18,8 @@ var userSchema = new mongoose.Schema(
     },
     avatar: {
       type: String,
+      default:
+        "https://www.shutterstock.com/image-vector/user-profile-icon-trendy-flat-260nw-1923506948.jpg",
     },
     role: {
       type: Boolean,

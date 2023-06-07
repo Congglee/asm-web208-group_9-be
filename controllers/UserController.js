@@ -88,10 +88,11 @@ const login = async (req, res) => {
       });
 
       user.password = undefined;
+      user.role = undefined;
       return res.status(200).json({
         success: true,
         message: "Đăng nhập tài khoản thành công!",
-        user,
+        userData: user,
         accessToken,
       });
     }
