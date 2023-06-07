@@ -213,7 +213,10 @@ const getProducts = async (req, res) => {
     if (queries?.name)
       formatedQueries.name = { $regex: queries.name, $options: "i" };
 
-    let queryCommand = Product.find(formatedQueries);
+    let queryCommand = Product.find(formatedQueries).populate({
+      path: "categoryId",
+      select: "name slug",
+    });
 
     if (req.query.sort) {
       const sortBy = req.query.sort.split(",").join(" ");
