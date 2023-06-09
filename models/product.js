@@ -12,7 +12,6 @@ var productSchema = new mongoose.Schema(
     slug: { type: String, slug: "name" },
     thumb: {
       type: String,
-      required: true,
     },
     images: [],
     price: {

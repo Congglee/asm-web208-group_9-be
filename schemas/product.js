@@ -5,9 +5,8 @@ export const createProductSchema = Joi.object({
     "string.empty": "Tên sản phẩm không được để trống",
     "any.required": "Trường tên sản phẩm là bắt buộc",
   }),
-  thumb: Joi.string().trim().required().messages({
+  thumb: Joi.string().trim().messages({
     "string.empty": "Ảnh đại diện sản phẩm không được để trống",
-    "any.required": "Trường ảnh đại diện sản phẩm là bắt buộc",
   }),
   images: Joi.array().items(Joi.string()).messages({
     "array.base": "Ảnh sản phẩm phải là một mảng",

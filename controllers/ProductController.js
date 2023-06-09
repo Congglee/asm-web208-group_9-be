@@ -10,6 +10,7 @@ const createProduct = async (req, res) => {
     });
     if (error) {
       const errors = error.details.map((errItem) => errItem.message);
+      console.log(errors);
       return res.status(400).json({
         success: false,
         message: errors,
@@ -29,6 +30,22 @@ const createProduct = async (req, res) => {
     }
 
     const newProduct = await Product.create(req.body);
+
+    // const imageLinks = req.files.map((el) => el.path);
+    // newProduct.images = imageLinks;
+
+    const thumbFiles = req.files["thumb"];
+    const imageFiles = req.files["images"];
+
+    if (thumbFiles && thumbFiles.length > 0) {
+      newProduct.thumb = thumbFiles[0].path;
+    }
+
+    if (imageFiles && imageFiles.length > 0) {
+      newProduct.images = imageFiles.map((file) => file.path);
+    }
+
+    await newProduct.save();
 
     return res.status(200).json({
       success: newProduct ? true : false,
@@ -105,6 +122,19 @@ const updateProduct = async (req, res) => {
         new: true,
       }
     );
+
+    const thumbFiles = req?.files?.["thumb"];
+    const imageFiles = req?.files?.["images"];
+
+    if (thumbFiles && thumbFiles.length > 0) {
+      updatedProduct.thumb = thumbFiles[0].path;
+    }
+
+    if (imageFiles && imageFiles.length > 0) {
+      updatedProduct.images = imageFiles.map((file) => file.path);
+    }
+
+    await updatedProduct.save();
 
     return res.status(200).json({
       success: updatedProduct ? true : false,
@@ -255,11 +285,11 @@ const getProducts = async (req, res) => {
 
 const uploadImagesProducts = async (req, res) => {
   try {
-    const { pid } = req.params;
+    const { id } = req.params;
     if (!req.files) throw new Error("Missing inputs");
 
     const response = await Product.findByIdAndUpdate(
-      pid,
+      id,
       {
         $push: { images: { $each: req.files.map((el) => el.path) } },
       },
