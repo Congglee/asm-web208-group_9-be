@@ -18,6 +18,7 @@ const router = express.Router();
 
 router.post(
   "/products",
+  [verifyAccessToken, isAdmin],
   uploadCloud.fields([
     { name: "thumb", maxCount: 1 },
     { name: "images", maxCount: 10 },
@@ -26,11 +27,12 @@ router.post(
 );
 
 router.get("/products", getProducts);
-router.get("/products/id/:id", getProduct);
+router.get("/products/id/:id", [verifyAccessToken, isAdmin], getProduct);
 router.get("/products/slug/:slug", getProductBySlug);
 
 router.put(
   "/products/:id",
+  [verifyAccessToken, isAdmin],
   uploadCloud.fields([
     { name: "thumb", maxCount: 1 },
     { name: "images", maxCount: 10 },
@@ -43,6 +45,6 @@ router.put(
 //   uploadImagesProducts
 // );
 
-router.delete("/products/:id", deleteProduct);
+router.delete("/products/:id", [verifyAccessToken, isAdmin], deleteProduct);
 
 export default router;
