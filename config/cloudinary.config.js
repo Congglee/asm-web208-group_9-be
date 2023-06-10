@@ -20,6 +20,7 @@ const storage = new CloudinaryStorage({
   },
 });
 
+// uploadCloud là một cấu hình sẵn sàng sử dụng cho phép xử lý các file tải lên trong ứng dụng của mình và lưu trữ chúng trong tài khoản Cloudinary của bằng cách sử dụng middleware multer. (uploadCloud có thể được sử dụng làm middleware trong Express route để xử lý các file tải lên và lưu trữ chúng trong tài khoản Cloudinary đã định cấu hình.)
 const uploadCloud = multer({ storage });
 
 export default uploadCloud;

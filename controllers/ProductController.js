@@ -17,6 +17,7 @@ const createProduct = async (req, res) => {
       });
     }
 
+    // Kiểm tra tên sản phẩm trùng với tên sản phẩm nào trong db
     const productName = req.body.name;
     const existingProduct = await Product.findOne({
       name: { $regex: productName, $options: "i" },
@@ -31,10 +32,9 @@ const createProduct = async (req, res) => {
 
     const newProduct = await Product.create(req.body);
 
-    // const imageLinks = req.files.map((el) => el.path);
-    // newProduct.images = imageLinks;
-
+    // Lấy ra mảng file có file là thumb từ req.files
     const thumbFiles = req.files["thumb"];
+    // Lấy ra mảng file có file là images từ req.files
     const imageFiles = req.files["images"];
 
     if (thumbFiles && thumbFiles.length > 0) {
@@ -100,6 +100,7 @@ const updateProduct = async (req, res) => {
     let newSlug = product.slug;
     if (productName) {
       const existingProduct = await Product.findOne({
+        // Tìm kiếm sản phẩm trùng tên ngoại trừ sản phẩm hiện tại bằng toán từ $ne
         _id: { $ne: id },
         name: { $regex: productName, $options: "i" },
       });
@@ -283,37 +284,11 @@ const getProducts = async (req, res) => {
   }
 };
 
-const uploadImagesProducts = async (req, res) => {
-  try {
-    const { id } = req.params;
-    if (!req.files) throw new Error("Missing inputs");
-
-    const response = await Product.findByIdAndUpdate(
-      id,
-      {
-        $push: { images: { $each: req.files.map((el) => el.path) } },
-      },
-      { new: true }
-    );
-
-    return res.status(200).json({
-      status: response ? true : false,
-      updatedProduct: response ? response : "Cannot upload images product",
-    });
-  } catch (error) {
-    return res.status(400).json({
-      success: false,
-      mes: error?.message,
-    });
-  }
-};
-
 export {
   createProduct,
   updateProduct,
   getProduct,
   getProducts,
   deleteProduct,
-  uploadImagesProducts,
   getProductBySlug,
 };

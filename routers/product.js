@@ -6,15 +6,11 @@ import {
   createProduct,
   updateProduct,
   getProductBySlug,
-  uploadImagesProducts,
 } from "../controllers/ProductController";
 import uploadCloud from "../config/cloudinary.config";
 import { isAdmin, verifyAccessToken } from "../middlewares/verifyToken";
 
 const router = express.Router();
-
-// router.post("/products", createProduct);
-// router.post("/products", uploadCloud.array("images", 10), createProduct);
 
 router.post(
   "/products",
@@ -39,11 +35,6 @@ router.put(
   ]),
   updateProduct
 );
-// router.put(
-//   "/products/uploadimage/:id",
-//   uploadCloud.array("images", 10),
-//   uploadImagesProducts
-// );
 
 router.delete("/products/:id", [verifyAccessToken, isAdmin], deleteProduct);
 
