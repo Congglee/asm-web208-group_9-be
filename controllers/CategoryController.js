@@ -81,6 +81,8 @@ const getCategory = async (req, res) => {
 
 const deleteCategory = async (req, res) => {
   try {
+    const categoryId = req.params.id;
+
     const category = await Category.findById(req.params.id);
     if (!category) {
       return res.status(404).json({
@@ -88,22 +90,17 @@ const deleteCategory = async (req, res) => {
         message: "Không tìm thấy danh mục",
       });
     }
-    await Product.updateMany(
-      { categoryId: category._id },
-      { $set: { categoryId: null } }
-    );
 
-    const uncategorized = await Category.findOne({ name: "uncategorized" });
-    if (!uncategorized) {
-      return res.status(404).json({
-        success: false,
-        message: "Không tìm thấy danh mục uncategorized",
-      });
+    const products = await Product.find({ categoryId });
+
+    if (products.length > 0) {
+      const uncategorized = await Category.findOne({ name: "uncategorized" });
+
+      await Product.updateMany(
+        { categoryId: category._id },
+        { $set: { categoryId: uncategorized._id } }
+      );
     }
-    await Product.updateMany(
-      { categoryId: null },
-      { $set: { categoryId: uncategorized._id } }
-    );
 
     await category.remove();
     return res.status(200).json({
@@ -158,7 +155,7 @@ const updateCategory = async (req, res) => {
   } catch (error) {
     return res.status(400).json({
       success: false,
-      message: message.error,
+      message: error.message,
     });
   }
 };
