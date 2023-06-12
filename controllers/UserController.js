@@ -173,8 +173,13 @@ const updateUser = async (req, res) => {
       });
     }
 
+    const { id } = req.params;
+
     const { email } = req.body;
-    const checkEmail = await User.findOne({ email });
+    const checkEmail = await User.findOne({
+      _id: { $ne: id },
+      email,
+    });
     if (checkEmail)
       return res.status(401).json({
         success: false,
@@ -188,6 +193,14 @@ const updateUser = async (req, res) => {
       req.body,
       { new: true }
     ).select("-password -role");
+
+    const avatarFile = req.file;
+
+    if (avatarFile) {
+      updateUser.avatar = avatarFile.path;
+    }
+
+    await updateUser.save();
 
     return res.status(200).json({
       success: updateUser ? true : false,

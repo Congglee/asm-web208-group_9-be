@@ -8,6 +8,7 @@ import {
   deleteUser,
   updateUser,
 } from "../controllers/UserController";
+import uploadCloud from "../config/cloudinary.config";
 import { isAdmin, verifyAccessToken } from "../middlewares/verifyToken";
 
 const router = express.Router();
@@ -19,7 +20,13 @@ router.post("/users/logOut", logOut);
 router.get("/users", [verifyAccessToken, isAdmin], getUsers);
 router.get("/users/:id", verifyAccessToken, getUser);
 
-router.put("/users/:id", verifyAccessToken, updateUser);
+router.put(
+  "/users/:id",
+  verifyAccessToken,
+  uploadCloud.single("avatar"),
+  updateUser
+);
+
 router.delete("/users/:id", [verifyAccessToken, isAdmin], deleteUser);
 
 export default router;

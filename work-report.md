@@ -1,4 +1,4 @@
-# Báo cáo công việc tuần đầu tiên của nhóm 9
+# Báo cáo công việc tuần đầu tiên của nhóm 9 - 06/06/2023
 
 ## Đã làm gì rồi ?
 
@@ -6,8 +6,10 @@
 - Quản lý, phân chia công việc trên Jira
 - Quản lý mã code bằng git, tạo nhánh, commit và sử dụng git theo đúng quy trình của git flow
 - Xây dựng phần backend của dự án:
+
   - Xây dựng model cho category, product, user
   - Xây dựng các chức năng logic cho bài như:
+
     - CRUD user: Quân
     - CRUD product: Quân, Công
     - CRUD category: Hải
@@ -16,7 +18,8 @@
     - Validate cho các trường nhập vào (đăng ký, đăng nhập, thêm mới, cập nhật): Hải
     - Upload file ảnh sản phẩm khi thêm và cập nhật: Công
     - Filter sản phẩm (tìm kiếm theo tên, sắp xếp theo dữ liệu sản phẩm theo trường, phân trang, lọc sản phẩm theo mức giá): Công
-  - Tạo router cho api của category, product, user: Công
+
+  - Tạo router cho các api link của category, product, user: Công
 
 ## Có vấn đề gì không ?
 
@@ -31,3 +34,7 @@
 - Xây dựng giao diện client-admin
 - Gọi api và đổ dữ liệu ra website
 - Phát triển những chức năng logic của web phần Front-End (CRUD admin, Filter, Đăng ký, Đăng nhập, ...)
+
+---
+
+# Báo cáo công việc tuần thứ hai của nhóm 9 - 13/06/2023
