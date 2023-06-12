@@ -2,6 +2,7 @@ import express from "express";
 import {
   getProduct,
   getProducts,
+  getProductsClient,
   deleteProduct,
   createProduct,
   updateProduct,
@@ -24,6 +25,8 @@ router.post(
 
 router.get("/products", getProducts);
 router.get("/products/id/:id", [verifyAccessToken, isAdmin], getProduct);
+router.get("/product", getProductsClient);
+router.get("/products/id/:id", getProduct);
 router.get("/products/slug/:slug", getProductBySlug);
 
 router.put(
