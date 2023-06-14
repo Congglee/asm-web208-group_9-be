@@ -1,4 +1,5 @@
 import mongoose from "mongoose";
+import slug from "mongoose-slug-generator";
 
 // Declare the Schema of the Mongo model
 var productSchema = new mongoose.Schema(
@@ -6,22 +7,16 @@ var productSchema = new mongoose.Schema(
     name: {
       type: String,
       required: true,
+      unique: true,
     },
-    slug: {
-      type: String,
-      slug: "name",
-    },
+    slug: { type: String, slug: "name" },
     thumb: {
       type: String,
-      require: true,
     },
-    images: {
-      type: Array,
-      default: [],
-    },
+    images: [],
     price: {
       type: Number,
-      require: true,
+      required: true,
     },
     description: {
       type: String,
@@ -33,6 +28,8 @@ var productSchema = new mongoose.Schema(
   },
   { timestamps: true }
 );
+
+mongoose.plugin(slug);
 
 //Export the model
 export default mongoose.model("Product", productSchema);

@@ -5,6 +5,7 @@ var categorySchema = new mongoose.Schema(
     name: {
       type: String,
       required: true,
+      unique: true,
     },
     slug: {
       type: String,
@@ -19,4 +20,4 @@ var categorySchema = new mongoose.Schema(
 );
 
 //Export the model
-export default ("Category", categorySchema);
+export default mongoose.model("Category", categorySchema);
