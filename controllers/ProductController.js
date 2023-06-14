@@ -1,6 +1,5 @@
 import Product from "../models/product";
 import { Types } from "mongoose";
-
 import Category from "../models/category";
 import slugify from "slugify";
 import { createProductSchema, updateProductSchema } from "../schemas/product";
